@@ -13,12 +13,18 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 
-def grade_submission(submitted_code):
+def grade_submission(
+    submitted_code,
+    dataset_path="task/data/sample_dataset.csv",
+    target_column="target",
+):
     """
     Grade the submitted preprocessing function.
     
     Args:
         submitted_code: String containing the preprocessing function
+        dataset_path: Path to the dataset to use for grading
+        target_column: Name of the target column in the dataset
         
     Returns:
         tuple: (is_correct, feedback_message, detailed_results)
@@ -64,10 +70,10 @@ def grade_submission(submitted_code):
         
         preprocess_func = exec_globals['preprocess_data']
         
-        # Test the function with sample data
+        # Test the function with the specified dataset
         try:
             X_train, X_test, y_train, y_test = preprocess_func(
-                "task/data/sample_dataset.csv", "target"
+                dataset_path, target_column
             )
         except Exception as e:
             return False, f"Error calling preprocess_data function: {str(e)}", results
@@ -99,18 +105,19 @@ def grade_submission(submitted_code):
             results["detailed_feedback"].append(f"✗ Infinite values: train={train_inf}, test={test_inf}")
         
         # Requirement 3: Proper train/test split sizes
-        total_samples = len(X_train) + len(X_test)
-        expected_test_size = int(0.2 * 25)
-# The U+00A0 is the space character before the '#'
+        original_df = pd.read_csv(dataset_path)
+        total_samples = len(original_df)
+        expected_test_size = int(0.2 * total_samples)
         actual_test_size = len(X_test)
         
+        # Allow for slight variation in split size
         if abs(actual_test_size - expected_test_size) <= 1:
             results["passed_requirements"] += 1
             results["detailed_feedback"].append("✓ Correct train/test split ratio")
         else:
             results["failed_requirements"].append("Incorrect train/test split ratio")
             results["detailed_feedback"].append(f"✗ Test size: expected ~{expected_test_size}, got {actual_test_size}")
-        
+
         # Requirement 4: All features are numeric (proper categorical encoding)
         if hasattr(X_train, 'select_dtypes'):
             train_numeric = X_train.select_dtypes(include=[np.number]).shape[1]
@@ -169,8 +176,7 @@ def grade_submission(submitted_code):
 
         # Requirement 7: Categorical variables handled properly
         # Check if output has more features than input (suggesting one-hot encoding)
-        original_df = pd.read_csv("task/data/sample_dataset.csv")
-        original_features = original_df.drop(columns=["target"]).shape[1]
+        original_features = original_df.drop(columns=[target_column]).shape[1]
         
         if X_train.shape[1] >= original_features:
             results["passed_requirements"] += 1
@@ -181,7 +187,7 @@ def grade_submission(submitted_code):
         
         # Requirement 8: Target distribution preserved (stratified sampling)
         # Check if target distribution is preserved
-        original_target_dist = original_df["target"].value_counts(normalize=True).sort_index()
+        original_target_dist = original_df[target_column].value_counts(normalize=True).sort_index()
         train_target_dist = pd.Series(y_train).value_counts(normalize=True).sort_index()
         
         # --- UPDATED REQUIREMENT 8 CHECK ---

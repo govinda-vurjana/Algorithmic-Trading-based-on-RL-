@@ -1,4 +1,4 @@
-Pass Rate: 10.0%
+Pass Rate: 30.0%
 Target Range: 10-40%
 Status: ✓ GOOD
-Last Updated: 2025-11-04 01:59:41
+Last Updated: 2025-11-04 02:37:35
