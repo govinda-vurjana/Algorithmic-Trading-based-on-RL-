@@ -57,3 +57,20 @@ You can control the execution mode with command-line flags:
 
 - **`results/pass_rate.txt`**: A summary of each run, including the data source and pass rate, is appended here.
 - **`results/all_runs.json`**: Detailed results for every trial in every run are appended to this single file for a complete chronological record.
+
+## Example Log Output (`results/pass_rate.txt`)
+
+```
+--- 2025-11-04 03:09:38 ---
+Dataset: task/data/sample_dataset.csv
+Pass Rate: 40.0%
+Target Range: 10-40%
+Status: ✓ GOOD
+
+--- 2025-11-04 03:12:46 ---
+Dataset: data/sample.csv
+Pass Rate: 20.0%
+Target Range: 10-40%
+Status: ✓ GOOD
+
+```
