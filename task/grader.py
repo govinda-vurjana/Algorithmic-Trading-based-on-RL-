@@ -31,7 +31,7 @@ def grade_submission(
     """
     
     results = {
-        "total_requirements": 8,
+        "total_requirements": 9,
         "passed_requirements": 0,
         "failed_requirements": [],
         "detailed_feedback": []
@@ -212,14 +212,26 @@ def grade_submission(
             results["failed_requirements"].append("Target distribution check failed")
             results["detailed_feedback"].append("✗ Could not verify target distribution")
         # --- END UPDATED REQUIREMENT 8 CHECK ---
-        
-        # Success criteria: Need at least 4/8 requirements for a good solution
-        success = results["passed_requirements"] >= 4
+
+        # Requirement 9: Input validation and error handling
+        has_error_handling = (
+            "try:" in submitted_code and "except" in submitted_code
+        ) or 'if target_column not in' in submitted_code or 'if filepath not in' in submitted_code
+
+        if has_error_handling:
+            results["passed_requirements"] += 1
+            results["detailed_feedback"].append("✓ Code includes input validation or error handling")
+        else:
+            results["failed_requirements"].append("Missing input validation or error handling")
+            results["detailed_feedback"].append("✗ Code should check for file/column existence or use try-except blocks")
+
+        # Success criteria: Need at least 5/9 requirements for a good solution
+        success = results["passed_requirements"] >= 5
         
         if success:
-            feedback = f"Passed {results['passed_requirements']}/8 requirements - Good job!"
+            feedback = f"Passed {results['passed_requirements']}/9 requirements - Good job!"
         else:
-            feedback = f"Passed only {results['passed_requirements']}/8 requirements - Needs improvement"
+            feedback = f"Passed only {results['passed_requirements']}/9 requirements - Needs improvement"
         
         return success, feedback, results
         
