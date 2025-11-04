@@ -1,255 +1,240 @@
-"""
-Grading Logic
-=============
-Evaluates whether the submitted solution meets all requirements.
-"""
-
+import os
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+import importlib.util
+import sys
+import traceback
+from typing import Tuple, Dict, Any
 
+def check_code_structure(module) -> Tuple[bool, str]:
+    """Check for required function with minimal validation."""
+    # Check for required function
+    if not hasattr(module, 'predict_trade') or not callable(module.predict_trade):
+        return False, "Function 'predict_trade' not found or is not callable."
+    
+    # Check function signature
+    import inspect
+    sig = inspect.signature(module.predict_trade)
+    params = list(sig.parameters.values())
+    
+    # Verify function takes exactly one parameter
+    if len(params) != 1:
+        return False, "predict_trade must take exactly one parameter"
+        
+    return True, "Code structure validation passed"
 
-def grade_submission(
-    submitted_code,
-    dataset_path="task/data/sample_dataset.csv",
-    target_column="Target",
-):
-    """
-    Grade the submitted preprocessing function.
+def check_indicators_used(code: str) -> Tuple[bool, str]:
+    """Check if the code uses at least one technical indicator in a meaningful way.
     
     Args:
-        submitted_code: String containing the preprocessing function
-        dataset_path: Path to the dataset to use for grading
-        target_column: Name of the target column in the dataset
+        code: The source code to check
         
     Returns:
-        tuple: (is_correct, feedback_message, detailed_results)
+        Tuple of (success: bool, message: str)
     """
+    # Define indicators to look for (case insensitive)
+    common_indicators = [
+        'rsi', 'macd', 'ema', 'sma', 'bbands', 'atr', 'stoch', 'adx', 'cci', 'willr'
+    ]
     
-    results = {
-        "total_requirements": 9,
-        "passed_requirements": 0,
-        "failed_requirements": [],
-        "detailed_feedback": []
+    # Check for indicator usage in code (case insensitive)
+    code_lower = code.lower()
+    
+    # Look for any indicator usage
+    used_indicators = [ind for ind in common_indicators 
+                      if f"talib.{ind}" in code_lower or f" {ind}(" in code_lower]
+    
+    if not used_indicators:
+        return False, "No technical indicators found. Use at least one indicator from TA-Lib."
+        
+    # Check if indicators are used in trading conditions
+    has_conditions = any(op in code_lower for op in ['>', '<', '>=', '<=', '==', '!='])
+    
+    if not has_conditions:
+        return False, "Indicators found but not used in any trading conditions"
+        
+    return True, f"Found indicators: {', '.join(used_indicators)}"
+
+def check_metrics(metrics: Dict[str, Any]) -> Tuple[bool, str]:
+    """Validate that the returned metrics are reasonable and complete.
+    
+    Args:
+        metrics: Dictionary of metrics to validate
+        
+    Returns:
+        Tuple of (success: bool, message: str)
+    """
+    # Required metrics with reasonable bounds
+    required_metrics = {
+        'cumulative_returns_final': (-1.0, 10.0),  # -100% to 1000%
+        'sharpe_ratio': (-5.0, 10.0),              # Reasonable bounds
+        'max_drawdown': (0.0, 1.0),                # 0% to 100%
     }
     
-    try:
-        # Clean the submitted code (remove markdown code blocks if present)
-        code_to_exec = submitted_code
-        if "```python" in code_to_exec:
-            # Extract code from markdown blocks
-            import re
-            code_blocks = re.findall(r'```python\n(.*?)\n```', code_to_exec, re.DOTALL)
-            if code_blocks:
-                code_to_exec = code_blocks[0]
-        elif "```" in code_to_exec:
-            # Handle generic code blocks
-            import re
-            code_blocks = re.findall(r'```\n(.*?)\n```', code_to_exec, re.DOTALL)
-            if code_blocks:
-                code_to_exec = code_blocks[0]
-        
-        # Execute the submitted function with warnings suppressed
-        import warnings
-        warnings.filterwarnings('ignore', category=FutureWarning)
-        
-        exec_globals = {
-            'pd': pd, 'np': np, 'train_test_split': train_test_split,
-            'StandardScaler': StandardScaler, 'OneHotEncoder': OneHotEncoder,
-            'SimpleImputer': SimpleImputer, 'ColumnTransformer': ColumnTransformer,
-            'Pipeline': Pipeline, 'warnings': warnings
-        }
-        exec(code_to_exec, exec_globals)
-        
-        if 'preprocess_data' not in exec_globals:
-            return False, "Function 'preprocess_data' not found", results
-        
-        preprocess_func = exec_globals['preprocess_data']
-        
-        # Test the function with the specified dataset
-        try:
-            X_train, X_test, y_train, y_test = preprocess_func(
-                dataset_path, target_column
-            )
-        except Exception as e:
-            return False, f"Error calling preprocess_data function: {str(e)}", results
-        
-        # Validate that we got the expected outputs
-        if X_train is None or X_test is None or y_train is None or y_test is None:
-            return False, "Function returned None values", results
-        
-        # Requirement 1: No missing values in output
-        train_missing = _count_missing(X_train)
-        test_missing = _count_missing(X_test)
-        
-        if train_missing == 0 and test_missing == 0:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ No missing values in output")
-        else:
-            results["failed_requirements"].append("Output contains missing values")
-            results["detailed_feedback"].append(f"✗ Missing values: train={train_missing}, test={test_missing}")
-        
-        # Requirement 2: No infinite values
-        train_inf = _count_infinite(X_train)
-        test_inf = _count_infinite(X_test)
-        
-        if train_inf == 0 and test_inf == 0:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ No infinite values in output")
-        else:
-            results["failed_requirements"].append("Output contains infinite values")
-            results["detailed_feedback"].append(f"✗ Infinite values: train={train_inf}, test={test_inf}")
-        
-        # Requirement 3: Proper train/test split sizes
-        original_df = pd.read_csv(dataset_path)
-        total_samples = len(original_df)
-        expected_test_size = int(0.2 * total_samples)
-        actual_test_size = len(X_test)
-        
-        # Allow for slight variation in split size
-        if abs(actual_test_size - expected_test_size) <= 1:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Correct train/test split ratio")
-        else:
-            results["failed_requirements"].append("Incorrect train/test split ratio")
-            results["detailed_feedback"].append(f"✗ Test size: expected ~{expected_test_size}, got {actual_test_size}")
-
-        # Requirement 4: All features are numeric (proper categorical encoding)
-        if hasattr(X_train, 'select_dtypes'):
-            train_numeric = X_train.select_dtypes(include=[np.number]).shape[1]
-            test_numeric = X_test.select_dtypes(include=[np.number]).shape[1]
-            all_numeric = (train_numeric == X_train.shape[1] and test_numeric == X_test.shape[1])
-        else:
-            # For numpy arrays, check if dtype is numeric
-            all_numeric = X_train.dtype.kind in 'biufc' and X_test.dtype.kind in 'biufc'
-        
-        if all_numeric:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ All features properly encoded as numeric")
-        else:
-            results["failed_requirements"].append("Non-numeric features found")
-            results["detailed_feedback"].append("✗ Non-numeric columns in output")
-        
-        # Requirement 5: Features are normalized/standardized
-        if hasattr(X_train, 'std'):
-            train_stds = X_train.std()
-            normalized_features = (train_stds > 0.8) & (train_stds < 1.2)
-            normalized_count = normalized_features.sum()
-            total_features = len(train_stds)
-        else:
-            # For numpy arrays
-            train_stds = np.std(X_train, axis=0)
-            normalized_features = (train_stds > 0.8) & (train_stds < 1.2)
-            normalized_count = normalized_features.sum()
-            total_features = len(train_stds)
-        
-        # --- UPDATED REQUIREMENT 5 CHECK ---
-        uses_standard_scaler = "StandardScaler" in submitted_code
-
-        if normalized_count >= total_features * 0.6 and uses_standard_scaler:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Features appear normalized and StandardScaler used")
-        elif normalized_count >= total_features * 0.6:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Features appear normalized (statistical check passed)")
-        else:
-            results["failed_requirements"].append("Features not properly normalized")
-            results["detailed_feedback"].append(f"✗ Only {normalized_count}/{total_features} features normalized")
-        # --- END UPDATED REQUIREMENT 5 CHECK ---
-        
-        # Requirement 6: No data leakage (proper fit/transform usage)
-        # Check if the code suggests proper handling
-        # --- UPDATED REQUIREMENT 6 CHECK ---
-        if ("fit_transform" in submitted_code and "transform" in submitted_code) or \
-           ("fit(" in submitted_code and "transform(" in submitted_code) or \
-           ("Pipeline(" in submitted_code and "ColumnTransformer" in submitted_code):
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Code suggests proper fit/transform usage or pipeline construction")
-        else:
-            results["failed_requirements"].append("Potential data leakage in normalization")
-            results["detailed_feedback"].append("✗ Should use fit_transform on train, transform on test, or proper Pipeline structure")
-        # --- END UPDATED REQUIREMENT 6 CHECK ---
-
-        # Requirement 7: Categorical variables handled properly
-        # Check if output has more features than input (suggesting one-hot encoding)
-        original_features = original_df.drop(columns=[target_column]).shape[1]
-        
-        if X_train.shape[1] >= original_features:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Categorical variables handled (feature count increased)")
-        else:
-            results["failed_requirements"].append("Categorical variables not properly handled")
-            results["detailed_feedback"].append(f"✗ Feature count decreased: {original_features} -> {X_train.shape[1]}")
-        
-        # Requirement 8: Target distribution preserved (stratified sampling)
-        # Check if target distribution is preserved
-        original_target_dist = original_df[target_column].value_counts(normalize=True).sort_index()
-        train_target_dist = pd.Series(y_train).value_counts(normalize=True).sort_index()
-        
-        # --- UPDATED REQUIREMENT 8 CHECK ---
-        uses_stratify = "stratify" in submitted_code
-
-        # Ensure both series have the same index
-        common_classes = original_target_dist.index.intersection(train_target_dist.index)
-        if len(common_classes) > 0:
-            dist_diff = abs(original_target_dist[common_classes] - train_target_dist[common_classes]).max()
+    # Check required metrics
+    missing = []
+    invalid = []
+    
+    for metric, (min_val, max_val) in required_metrics.items():
+        if metric not in metrics:
+            missing.append(metric)
+            continue
             
-            if dist_diff < 0.25 and uses_stratify: 
-                results["passed_requirements"] += 1
-                results["detailed_feedback"].append("✓ Target distribution preserved (stratify used and check passed)")
-            elif dist_diff < 0.25:
-                # If the distribution is preserved by chance (less likely with small samples)
-                results["failed_requirements"].append("Missing 'stratify' argument in code")
-                results["detailed_feedback"].append(f"✗ Distribution preserved but 'stratify' argument not found in code. Diff: {dist_diff:.3f}")
-            else:
-                results["failed_requirements"].append("Target distribution not preserved")
-                results["detailed_feedback"].append(f"✗ Target distribution difference: {dist_diff:.3f}")
-        else:
-            results["failed_requirements"].append("Target distribution check failed")
-            results["detailed_feedback"].append("✗ Could not verify target distribution")
-        # --- END UPDATED REQUIREMENT 8 CHECK ---
+        value = metrics[metric]
+        if not isinstance(value, (int, float)) or not np.isfinite(value):
+            invalid.append(f"{metric}: must be a finite number, got {value}")
+        elif not (min_val <= value <= max_val):
+            invalid.append(f"{metric}: must be between {min_val} and {max_val}, got {value:.4f}")
+    
+    # Compile results
+    if missing:
+        return False, f"Missing required metrics: {', '.join(missing)}"
+    if invalid:
+        return False, "Invalid metrics:\n- " + "\n- ".join(invalid)
+    
+    return True, "All metrics are valid"
 
-        # Requirement 9: Input validation and error handling
-        has_error_handling = (
-            "try:" in submitted_code and "except" in submitted_code
-        ) or 'if target_column not in' in submitted_code or 'if filepath not in' in submitted_code
-
-        if has_error_handling:
-            results["passed_requirements"] += 1
-            results["detailed_feedback"].append("✓ Code includes input validation or error handling")
-        else:
-            results["failed_requirements"].append("Missing input validation or error handling")
-            results["detailed_feedback"].append("✗ Code should check for file/column existence or use try-except blocks")
-
-        # Success criteria: Need at least 5/9 requirements for a good solution
-        success = results["passed_requirements"] >= 5
+def load_and_validate_data(dataset_path: str) -> pd.DataFrame:
+    """Load and validate the input data."""
+    try:
+        # Read the CSV file with proper datetime parsing
+        df = pd.read_csv(
+            dataset_path,
+            names=['day', 'timestamp', 'value'],
+            parse_dates=['timestamp'],
+            index_col='timestamp'
+        )
         
-        if success:
-            feedback = f"Passed {results['passed_requirements']}/9 requirements - Good job!"
-        else:
-            feedback = f"Passed only {results['passed_requirements']}/9 requirements - Needs improvement"
-        
-        return success, feedback, results
+        # Basic validation
+        if len(df) < 10:
+            print(f"⚠️ Warning: Very small dataset ({len(df)} rows). Results may be unreliable.")
+            
+        return df['value']  # Return just the value series
         
     except Exception as e:
-        return False, f"Error executing preprocessing function: {str(e)}", results
+        raise ValueError(f"Error loading data: {str(e)}")
 
+def grade_submission(submitted_code: str, dataset_path: str) -> Tuple[bool, str, Dict[str, Any]]:
+    """Grade a trading strategy submission.
+    
+    The submission must implement a trading strategy that:
+    1. Takes a dataset path and returns trading signals and metrics
+    2. Uses at least one technical indicator from TA-Lib
+    3. Returns valid performance metrics
+    
+    Args:
+        submitted_code: Python code as string
+        dataset_path: Path to the dataset file
+        
+    Returns:
+        Tuple of (passed: bool, message: str, metrics: dict)
+    """
+    import tempfile
+    import uuid
+    
+    # Create a unique temp file
+    temp_dir = tempfile.mkdtemp()
+    temp_file = os.path.join(temp_dir, f'solution_{uuid.uuid4().hex}.py')
+    module_name = f'solution_{uuid.uuid4().hex}'
+    
+    try:
+        # Save the submitted code to a temporary file
+        with open(temp_file, 'w', encoding='utf-8') as f:
+            f.write(submitted_code)
+        
+        # Import the module
+        spec = importlib.util.spec_from_file_location(module_name, temp_file)
+        if spec is None or spec.loader is None:
+            return False, "Failed to create module spec", {}
+            
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        
+        try:
+            spec.loader.exec_module(module)
+        except Exception as e:
+            return False, f"Error loading module: {str(e)}", {}
+        
+        # Check for required function
+        if not hasattr(module, 'predict_trade') or not callable(module.predict_trade):
+            return False, "Function 'predict_trade' not found or not callable", {}
+        
+        # Check for indicator usage
+        indicators_ok, indicators_msg = check_indicators_used(submitted_code)
+        if not indicators_ok:
+            return False, f"Indicator check failed: {indicators_msg}", {}
+        
+        # Execute the prediction
+        try:
+            result = module.predict_trade(dataset_path)
+            
+            # Validate result structure
+            if not isinstance(result, dict):
+                return False, "Return value must be a dictionary", {}
+                
+            if 'metrics' not in result:
+                return False, "Missing 'metrics' in return value", {}
+                
+            if not isinstance(result['metrics'], dict):
+                return False, "'metrics' must be a dictionary", {}
+            
+            # Validate metrics
+            metrics_ok, metrics_msg = check_metrics(result['metrics'])
+            if not metrics_ok:
+                return False, f"Invalid metrics: {metrics_msg}", {}
+            
+            # Success criteria - adjusted for 10-40% success rate
+            metrics = result['metrics']
+            
+            # Check if Sharpe ratio is positive and reasonable (> 1.0 for quality)
+            sharpe = metrics.get('sharpe_ratio', -999)
+            if sharpe <= 0:
+                return False, f"Sharpe ratio must be positive (got {sharpe:.4f}). Strategy loses money or has no variance.", metrics
+            if sharpe < 1.0:
+                return False, f"Sharpe ratio too low (got {sharpe:.4f}). Strategy needs better risk-adjusted returns (minimum 1.0).", metrics
+                
+            # Check if max drawdown is reasonable (< 40%)
+            max_dd = metrics.get('max_drawdown', 1.0)
+            if max_dd > 0.4:
+                return False, f"Max drawdown too high: {max_dd:.1%}. Strategy is too risky (maximum 40%).", metrics
+            
+            # Check cumulative returns are positive
+            cum_ret = metrics.get('cumulative_returns_final', -999)
+            if cum_ret <= 0:
+                return False, f"Strategy lost money: {cum_ret:.2%} cumulative return. Need positive returns.", metrics
+            
+            return True, "All checks passed!", metrics
+            
+        except Exception as e:
+            return False, f"Error executing predict_trade: {str(e)}", {}
+            
+    except Exception as e:
+        return False, f"Grading error: {str(e)}", {}
+        
+    finally:
+        # Clean up temp files
+        try:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
+            if os.path.exists(temp_dir):
+                os.rmdir(temp_dir)
+        except Exception:
+            pass
+            
+        # Clean up module
+        if 'module_name' in locals() and module_name in sys.modules:
+            try:
+                del sys.modules[module_name]
+            except Exception:
+                pass
 
-def _count_missing(data):
-    """Count missing values in data (works with both pandas and numpy)"""
-    if hasattr(data, 'isnull'):
-        return data.isnull().sum().sum()
-    else:
-        return np.isnan(data).sum() if data.dtype.kind in 'fc' else 0
-
-
-def _count_infinite(data):
-    """Count infinite values in data (works with both pandas and numpy)"""
-    if hasattr(data, 'select_dtypes'):
-        return np.isinf(data.select_dtypes(include=[np.number])).sum().sum()
-    else:
-        return np.isinf(data).sum() if data.dtype.kind in 'fc' else 0
+if __name__ == '__main__':
+    # Example usage
+    with open('solution.py', 'r') as f:
+        code = f.read()
+    
+    passed, msg, metrics = grade_submission(code, 'data/tick_data.csv')
+    print(f"Passed: {passed}")
+    print(f"Message: {msg}")
+    if passed:
+        print("Metrics:", metrics)

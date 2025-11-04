@@ -1,0 +1,79 @@
+{
+  "timestamp": "2025-11-04T15:33:19.875953",
+  "total_trials": 10,
+  "passed": 2,
+  "results": [
+    {
+      "trial": 0,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got -4.1675). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": -0.08907359604117338,
+        "sharpe_ratio": -4.167465140506688,
+        "max_drawdown": 0.08907359604117338
+      }
+    },
+    {
+      "trial": 1,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 2,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.07339712885565786,
+        "sharpe_ratio": 4.165940675559909,
+        "max_drawdown": 0.0
+      }
+    },
+    {
+      "trial": 3,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 4,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.07339712885565786,
+        "sharpe_ratio": 4.165940675559909,
+        "max_drawdown": 0.0
+      }
+    },
+    {
+      "trial": 5,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 6,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 7,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 8,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    },
+    {
+      "trial": 9,
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
+    }
+  ]
+}

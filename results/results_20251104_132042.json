@@ -1,0 +1,69 @@
+{
+  "timestamp": "20251104_132042",
+  "total_trials": 10,
+  "passed": 0,
+  "failed": 10,
+  "accuracy": 0.0,
+  "trials": [
+    {
+      "trial": 0,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 1,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 2,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 3,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 4,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 5,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 6,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 7,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 8,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    },
+    {
+      "trial": 9,
+      "passed": false,
+      "error": "No response from model",
+      "metrics": null
+    }
+  ]
+}

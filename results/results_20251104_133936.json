@@ -1,0 +1,69 @@
+{
+  "timestamp": "20251104_133936",
+  "total_trials": 10,
+  "passed": 0,
+  "failed": 10,
+  "accuracy": 0.0,
+  "trials": [
+    {
+      "trial": 0,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for analysis.",
+      "metrics": {}
+    },
+    {
+      "trial": 1,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for analysis",
+      "metrics": {}
+    },
+    {
+      "trial": 2,
+      "passed": false,
+      "error": "Error during execution: single positional indexer is out-of-bounds",
+      "metrics": {}
+    },
+    {
+      "trial": 3,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for analysis.",
+      "metrics": {}
+    },
+    {
+      "trial": 4,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for analysis.",
+      "metrics": {}
+    },
+    {
+      "trial": 5,
+      "passed": false,
+      "error": "Error during execution: single positional indexer is out-of-bounds",
+      "metrics": {}
+    },
+    {
+      "trial": 6,
+      "passed": false,
+      "error": "Error during execution: Not enough data to calculate indicators.",
+      "metrics": {}
+    },
+    {
+      "trial": 7,
+      "passed": false,
+      "error": "Error during execution: STOCHF() takes at least 3 positional arguments (1 given)",
+      "metrics": {}
+    },
+    {
+      "trial": 8,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for indicator calculation.",
+      "metrics": {}
+    },
+    {
+      "trial": 9,
+      "passed": false,
+      "error": "Error during execution: Insufficient data for analysis.",
+      "metrics": {}
+    }
+  ]
+}

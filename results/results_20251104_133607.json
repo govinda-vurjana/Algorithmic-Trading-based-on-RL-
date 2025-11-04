@@ -1,0 +1,76 @@
+{
+  "timestamp": "20251104_133607",
+  "total_trials": 10,
+  "passed": 0,
+  "failed": 10,
+  "accuracy": 0.0,
+  "trials": [
+    {
+      "trial": 0,
+      "passed": false,
+      "error": "Error during execution: 'volume'",
+      "metrics": {}
+    },
+    {
+      "trial": 1,
+      "passed": false,
+      "error": "Error during execution: single positional indexer is out-of-bounds",
+      "metrics": {}
+    },
+    {
+      "trial": 2,
+      "passed": false,
+      "error": "Error during execution: 'volume'",
+      "metrics": {}
+    },
+    {
+      "trial": 3,
+      "passed": false,
+      "error": "Metric validation failed: Invalid value for signal_stability: nan",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0,
+        "max_drawdown": 0.0,
+        "signal_stability": NaN,
+        "false_signal_ratio": 0.0,
+        "indicator_correlation_rsi_macd": NaN
+      }
+    },
+    {
+      "trial": 4,
+      "passed": false,
+      "error": "Error during execution: cannot reshape array of size 0 into shape (1,)",
+      "metrics": {}
+    },
+    {
+      "trial": 5,
+      "passed": false,
+      "error": "Error during execution: Length of values (0) does not match length of index (1)",
+      "metrics": {}
+    },
+    {
+      "trial": 6,
+      "passed": false,
+      "error": "Error during execution: Length of values (0) does not match length of index (1)",
+      "metrics": {}
+    },
+    {
+      "trial": 7,
+      "passed": false,
+      "error": "Error during execution: STOCHF() takes at least 3 positional arguments (2 given)",
+      "metrics": {}
+    },
+    {
+      "trial": 8,
+      "passed": false,
+      "error": "Error during execution: \"Column(s) ['Volume'] do not exist\"",
+      "metrics": {}
+    },
+    {
+      "trial": 9,
+      "passed": false,
+      "error": "Error during execution: 'volume'",
+      "metrics": {}
+    }
+  ]
+}

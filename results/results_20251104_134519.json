@@ -1,0 +1,27 @@
+{
+  "timestamp": "20251104_134519",
+  "total_trials": 3,
+  "passed": 0,
+  "failed": 3,
+  "accuracy": 0.0,
+  "trials": [
+    {
+      "trial": 0,
+      "passed": false,
+      "error": "Error during execution: STOCHF() takes at least 3 positional arguments (1 given)",
+      "metrics": {}
+    },
+    {
+      "trial": 1,
+      "passed": false,
+      "error": "Signals must be a NumPy array of integers",
+      "metrics": {}
+    },
+    {
+      "trial": 2,
+      "passed": false,
+      "error": "Error during execution: STOCHF() takes at least 3 positional arguments (1 given)",
+      "metrics": {}
+    }
+  ]
+}

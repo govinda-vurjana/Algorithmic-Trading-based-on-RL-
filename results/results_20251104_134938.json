@@ -1,0 +1,48 @@
+{
+  "timestamp": "20251104_134938",
+  "total_trials": 3,
+  "passed": 3,
+  "failed": 0,
+  "accuracy": 1.0,
+  "trials": [
+    {
+      "trial": 0,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0,
+        "signal_stability": 0.5,
+        "false_signal_ratio": 0.5,
+        "indicator_correlation_rsi_macd": 0.0
+      }
+    },
+    {
+      "trial": 1,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0,
+        "signal_stability": 0.5,
+        "false_signal_ratio": 0.5,
+        "indicator_correlation_rsi_macd": 0.0
+      }
+    },
+    {
+      "trial": 2,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0,
+        "signal_stability": 0.5,
+        "false_signal_ratio": 0.5,
+        "indicator_correlation_rsi_macd": 0.0
+      }
+    }
+  ]
+}
