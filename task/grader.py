@@ -183,25 +183,27 @@ def grade_submission(submitted_code: str, dataset_path: str) -> Tuple[bool, str,
             if not metrics_ok:
                 return False, f"Invalid metrics: {metrics_msg}", {}
             
-            # Success criteria - adjusted for 10-40% success rate
+            # Success criteria - calibrated for 10-40% success rate
             metrics = result['metrics']
             
-            # Check if Sharpe ratio is positive and reasonable (> 1.0 for quality)
+            # Check if Sharpe ratio is positive and excellent quality (> 2.0 for top performance)
             sharpe = metrics.get('sharpe_ratio', -999)
             if sharpe <= 0:
                 return False, f"Sharpe ratio must be positive (got {sharpe:.4f}). Strategy loses money or has no variance.", metrics
-            if sharpe < 1.0:
-                return False, f"Sharpe ratio too low (got {sharpe:.4f}). Strategy needs better risk-adjusted returns (minimum 1.0).", metrics
+            if sharpe < 2.0:
+                return False, f"Sharpe ratio too low (got {sharpe:.4f}). Strategy needs excellent risk-adjusted returns (minimum 2.0).", metrics
                 
-            # Check if max drawdown is reasonable (< 40%)
+            # Check if max drawdown is very conservative (< 25%)
             max_dd = metrics.get('max_drawdown', 1.0)
-            if max_dd > 0.4:
-                return False, f"Max drawdown too high: {max_dd:.1%}. Strategy is too risky (maximum 40%).", metrics
+            if max_dd > 0.25:
+                return False, f"Max drawdown too high: {max_dd:.1%}. Strategy is too risky (maximum 25%).", metrics
             
-            # Check cumulative returns are positive
+            # Check cumulative returns are positive and meaningful (> 0.8%)
             cum_ret = metrics.get('cumulative_returns_final', -999)
             if cum_ret <= 0:
                 return False, f"Strategy lost money: {cum_ret:.2%} cumulative return. Need positive returns.", metrics
+            if cum_ret < 0.008:
+                return False, f"Cumulative returns too low: {cum_ret:.2%}. Strategy needs at least 0.8% return.", metrics
             
             return True, "All checks passed!", metrics
             

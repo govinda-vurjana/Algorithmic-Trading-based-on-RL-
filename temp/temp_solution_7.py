@@ -3,36 +3,51 @@ import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # 1. Load and resample data
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
-
-    # 2. Calculate indicator - using RSI
-    close = ohlc['close'].values
-    rsi = talib.RSI(close, timeperiod=14)
     
-    # 3. Generate trading signals based on RSI
+    close = ohlc['close'].values
+    high = ohlc['high'].values
+    low = ohlc['low'].values
+    
+    rsi = talib.RSI(close, timeperiod=14)
+    macd, macd_signal, _ = talib.MACD(close, 12, 26, 9)
+    ema_fast = talib.EMA(close, timeperiod=9)
+    ema_slow = talib.EMA(close, timeperiod=21)
+    
     signals = np.zeros(len(close), dtype=int)
     
-    # Buy when RSI crosses above 40, sell when RSI crosses below 60
-    signals[(rsi < 40) & (np.roll(rsi, 1) >= 40)] = 1
-    signals[(rsi > 60) & (np.roll(rsi, 1) <= 60)] = -1
-
-    # 4. Calculate performance metrics
+    for i in range(26, len(close)):
+        bullish_momentum = (rsi[i] < 50 and macd[i] > macd_signal[i] and ema_fast[i] > ema_slow[i])
+        bearish_momentum = (rsi[i] > 50 and macd[i] < macd_signal[i] and ema_fast[i] < ema_slow[i])
+        
+        if bullish_momentum:
+            signals[i] = 1
+        elif bearish_momentum:
+            signals[i] = -1
+        elif rsi[i] < 40:
+            signals[i] = 1
+        elif rsi[i] > 60:
+            signals[i] = -1
+    
+    if np.sum(np.abs(signals)) == 0:
+        for i in range(26, len(close)):
+            if rsi[i] < 45:
+                signals[i] = 1
+            elif rsi[i] > 55:
+                signals[i] = -1
+    
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
     
-    # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
     
-    # Sharpe ratio (with safety check)
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
     
-    # Max drawdown
     cumulative = np.cumprod(1 + strategy_returns)
     running_max = np.maximum.accumulate(cumulative)
     drawdown = (running_max - cumulative) / running_max

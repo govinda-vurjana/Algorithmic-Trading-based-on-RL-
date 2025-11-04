@@ -1,36 +1,20 @@
 {
-  "timestamp": "2025-11-04T15:58:50.067011",
+  "timestamp": "2025-11-04T17:29:55.323935",
   "total_trials": 10,
   "passed": 4,
   "results": [
     {
       "trial": 0,
-      "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.03735294117647059,
+        "sharpe_ratio": 2.8982753492378883,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 1,
-      "passed": true,
-      "error": null,
-      "metrics": {
-        "cumulative_returns_final": 0.07339712885565786,
-        "sharpe_ratio": 4.165940675559909,
-        "max_drawdown": 0.0
-      }
-    },
-    {
-      "trial": 2,
-      "passed": true,
-      "error": null,
-      "metrics": {
-        "cumulative_returns_final": 0.07339712885565786,
-        "sharpe_ratio": 4.165940675559909,
-        "max_drawdown": 0.0
-      }
-    },
-    {
-      "trial": 3,
       "passed": false,
       "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
       "metrics": {
@@ -40,48 +24,84 @@
       }
     },
     {
+      "trial": 2,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0
+      }
+    },
+    {
+      "trial": 3,
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.03251869878188818,
+        "sharpe_ratio": 5.6155538247802985,
+        "max_drawdown": 0.0
+      }
+    },
+    {
       "trial": 4,
       "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 5,
-      "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.03251869878188818,
+        "sharpe_ratio": 5.6155538247802985,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 6,
       "passed": true,
       "error": null,
       "metrics": {
-        "cumulative_returns_final": 0.07339712885565786,
-        "sharpe_ratio": 4.165940675559909,
+        "cumulative_returns_final": 0.03251869878188818,
+        "sharpe_ratio": 5.6155538247802985,
         "max_drawdown": 0.0
       }
     },
     {
       "trial": 7,
-      "passed": true,
-      "error": null,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.07339712885565786,
-        "sharpe_ratio": 4.165940675559909,
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
         "max_drawdown": 0.0
       }
     },
     {
       "trial": 8,
       "passed": false,
-      "error": "Error executing predict_trade: operands could not be broadcast together with shapes (31,) (45,) ",
-      "metrics": {}
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 9,
       "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0
+      }
     }
   ]
 }

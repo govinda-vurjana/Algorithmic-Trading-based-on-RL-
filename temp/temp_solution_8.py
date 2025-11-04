@@ -3,37 +3,47 @@ import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # 1. Load and resample data
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
     
-    # 2. Calculate RSI indicator
     close = ohlc['close'].values
+    high = ohlc['high'].values
+    low = ohlc['low'].values
+    
     rsi = talib.RSI(close, timeperiod=14)
+    macd, macd_signal, _ = talib.MACD(close, 12, 26, 9)
+    ema_fast = talib.EMA(close, timeperiod=12)
+    ema_slow = talib.EMA(close, timeperiod=26)
     
-    # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-    signals[rsi < 30] = 1   # Buy
-    signals[rsi > 70] = -1  # Sell
     
-    # Ensure signals array matches the length of data
-    signals = np.pad(signals, (14, 0), 'constant', constant_values=(0, 0))
-
-    # 4. Calculate performance metrics
+    for i in range(26, len(close)):
+        buy_condition = (rsi[i] < 50 and macd[i] > macd_signal[i] and ema_fast[i] > ema_slow[i])
+        sell_condition = (rsi[i] > 50 and macd[i] < macd_signal[i] and ema_fast[i] < ema_slow[i])
+        
+        if buy_condition:
+            signals[i] = 1
+        elif sell_condition:
+            signals[i] = -1
+    
+    if np.sum(np.abs(signals)) == 0:
+        for i in range(26, len(close)):
+            if rsi[i] < 45:
+                signals[i] = 1
+            elif rsi[i] > 55:
+                signals[i] = -1
+    
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
     
-    # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
     
-    # Sharpe ratio (with safety check)
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
     
-    # Max drawdown
     cumulative = np.cumprod(1 + strategy_returns)
     running_max = np.maximum.accumulate(cumulative)
     drawdown = (running_max - cumulative) / running_max

@@ -2,6 +2,13 @@
 
 Implement a function that generates trading signals using technical analysis on tick data.
 
+**IMPORTANT INSTRUCTIONS:**
+1. Respond ONLY with valid Python code
+2. Do not include markdown code blocks (```python```)
+3. Do not include any explanations or comments outside the code
+4. Your strategy MUST generate at least 5-10 trading signals (not all zeros)
+5. Test that `np.sum(np.abs(signals)) > 0` before returning
+
 ## Task Overview
 You'll create a trading strategy that:
 1. Loads tick-level price data from a CSV file
@@ -35,6 +42,14 @@ def predict_trade(data_path: str) -> dict:
 ## Requirements
 
 ### 1. Data Processing
+**CRITICAL: You MUST use this exact data loading code:**
+```python
+df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+df.set_index('timestamp', inplace=True)
+ohlc = df['value'].resample('1min').ohlc().ffill()
+```
+
 - Read the CSV file (has header: 'day', 'timestamp', 'value')
 - Resample tick data to 1-minute OHLC bars using `'1min'` frequency
 - Handle NaN values appropriately (forward fill or drop)
@@ -71,37 +86,49 @@ Calculate these three required metrics:
 - **sharpe_ratio**: Risk-adjusted return
   - Calculate as: `mean(returns) / std(returns) * sqrt(252)`
   - Must be a finite number between -5.0 and 10.0
-  - Must be at least 1.0 for a passing strategy (excellent risk-adjusted returns)
+  - Must be at least 2.0 for a passing strategy (excellent risk-adjusted returns)
 
 - **max_drawdown**: Maximum peak-to-trough decline
   - Calculate as: `max((peak - trough) / peak)` for all peaks
   - Must be between 0.0 and 1.0 (e.g., 0.3 = 30% drawdown)
-  - Should be less than 0.5 (50%) for a reasonable strategy
+  - Must be less than 0.25 (25%) for a passing strategy
 
 ## Example Approach
+
+**CRITICAL: You MUST use this exact data loading pattern:**
+
 ```python
 import pandas as pd
 import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # 1. Load and resample data
+    # 1. Load and resample data - USE THIS EXACT PATTERN
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
     
-    # 2. Calculate indicator - choose one or more
+    # 2. Calculate indicators
     close = ohlc['close'].values
-    # Example: rsi = talib.RSI(close, timeperiod=14)
-    # Example: macd, signal, hist = talib.MACD(close, 12, 26, 9)
-    # Example: ema_fast = talib.EMA(close, 10)
     
-    # 3. Generate trading signals based on your indicator
+    # Example: Use RSI as primary indicator
+    rsi = talib.RSI(close, timeperiod=14)
+    
+    # Example: Use MACD for confirmation
+    macd, macd_signal, _ = talib.MACD(close, 12, 26, 9)
+    
+    # 3. Generate trading signals - SIMPLE APPROACH
     signals = np.zeros(len(close), dtype=int)
-    # TODO: Implement your trading logic here
-    # signals[condition] = 1   # Buy
-    # signals[condition] = -1  # Sell
+    
+    # Start after indicators warm up (avoid NaN values)
+    for i in range(26, len(close)):
+        # Buy signal: RSI oversold + MACD bullish
+        if rsi[i] < 40 and macd[i] > macd_signal[i]:
+            signals[i] = 1
+        # Sell signal: RSI overbought + MACD bearish
+        elif rsi[i] > 60 and macd[i] < macd_signal[i]:
+            signals[i] = -1
     
     # 4. Calculate performance metrics
     returns = np.diff(close) / close[:-1]
@@ -137,19 +164,65 @@ Your solution will pass if:
 2. ✅ At least one TA-Lib indicator is used in the code
 3. ✅ Returns a dict with 'signals' and 'metrics'
 4. ✅ All three required metrics are present and finite
-5. ✅ Sharpe ratio ≥ 1.0 (excellent risk-adjusted returns)
-6. ✅ Max drawdown < 0.4 (40% maximum)
-7. ✅ Cumulative returns > 0 (profitable strategy)
+5. ✅ Sharpe ratio ≥ 2.0 (excellent risk-adjusted returns)
+6. ✅ Max drawdown < 0.25 (25% maximum)
+7. ✅ Cumulative returns ≥ 0.8% (meaningful profitable strategy)
 
-## Tips
-- Start simple: use one indicator first, then add more if needed
+## Tips for Success
+- **This is a challenging task**: Only well-designed strategies will pass
+- **CRITICAL**: Your strategy MUST generate actual trades to have non-zero variance
+  - If Sharpe ratio is 0.0, it means your strategy isn't trading enough
+  - Aim for at least 5-10 trades across the dataset
 - Handle NaN values from indicators (they appear at the start)
 - **IMPORTANT**: Prevent division by zero in Sharpe ratio calculation:
   - Check if `std(returns) > 0` before dividing
   - Return 0.0 if standard deviation is zero
-- **Signal generation**: Use moderate thresholds to ensure trades happen:
-  - RSI: Try 40/60 instead of extreme 30/70
-  - MACD: Look for crossovers, not just positive/negative
-  - EMA: Use crossovers between fast and slow EMAs
-- Test your metrics calculations to ensure they're finite (not NaN or inf)
-- The dataset is small, so don't over-complicate your strategy
+
+### Signal Generation Strategies That Work:
+
+**SIMPLE RSI STRATEGY** (Recommended - generates enough trades):
+```python
+for i in range(26, len(close)):
+    if rsi[i] < 45:  # Moderately oversold
+        signals[i] = 1
+    elif rsi[i] > 55:  # Moderately overbought
+        signals[i] = -1
+```
+
+**MACD CROSSOVER** (Also works well):
+```python
+for i in range(26, len(close)):
+    if macd[i] > macd_signal[i]:
+        signals[i] = 1
+    elif macd[i] < macd_signal[i]:
+        signals[i] = -1
+```
+
+**EMA CROSSOVER** (Simple and effective):
+```python
+for i in range(26, len(close)):
+    if ema_fast[i] > ema_slow[i]:
+        signals[i] = 1
+    elif ema_fast[i] < ema_slow[i]:
+        signals[i] = -1
+```
+
+**Combined with Confirmation** (Use if you want better quality):
+```python
+for i in range(26, len(close)):
+    if rsi[i] < 45 and macd[i] > macd_signal[i]:  # Both agree on buy
+        signals[i] = 1
+    elif rsi[i] > 55 and macd[i] < macd_signal[i]:  # Both agree on sell
+        signals[i] = -1
+```
+
+### Common Mistakes to Avoid:
+- ❌ Requiring 3+ conditions to be true simultaneously (too restrictive)
+- ❌ Using extreme RSI thresholds (30/70) - use 40/60 instead
+- ❌ Only trading on exact crossovers - allow some flexibility
+- ❌ Generating all zeros for signals - this gives Sharpe ratio of 0.0
+
+### Key to Success:
+- Generate enough trades (5-10+) to have meaningful variance
+- Balance signal quality with signal frequency
+- Test that your strategy actually generates non-zero signals

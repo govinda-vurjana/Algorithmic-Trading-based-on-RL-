@@ -3,40 +3,42 @@ import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # 1. Load and resample data
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
-
-    # 2. Calculate indicator - RSI
+    
     close = ohlc['close'].values
+    high = ohlc['high'].values
+    low = ohlc['low'].values
+    
     rsi = talib.RSI(close, timeperiod=14)
+    ema_fast = talib.EMA(close, timeperiod=8)
+    ema_slow = talib.EMA(close, timeperiod=21)
+    macd, macd_signal, _ = talib.MACD(close, 12, 26, 9)
     
-    # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-    # Buy when RSI crosses above 40, sell when it crosses below 60
-    signals[(rsi < 40)] = 1
-    signals[(rsi > 60)] = -1
     
-    # 4. Calculate performance metrics
+    for i in range(26, len(close)):
+        if rsi[i] < 50 and ema_fast[i] > ema_slow[i] and macd[i] > macd_signal[i]:
+            signals[i] = 1
+        elif rsi[i] > 50 and ema_fast[i] < ema_slow[i] and macd[i] < macd_signal[i]:
+            signals[i] = -1
+    
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
-
-    # Cumulative returns
+    
     cumulative_returns = np.prod(1 + strategy_returns) - 1
-
-    # Sharpe ratio (with safety check)
+    
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
-
-    # Max drawdown
+    
     cumulative = np.cumprod(1 + strategy_returns)
     running_max = np.maximum.accumulate(cumulative)
     drawdown = (running_max - cumulative) / running_max
     max_dd = np.max(drawdown) if len(drawdown) > 0 else 0.0
-
+    
     return {
         'signals': signals,
         'metrics': {

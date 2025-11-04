@@ -3,37 +3,41 @@ import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # 1. Load and resample data
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
-    ohlc = df['value'].resample('1T').ohlc().ffill()  # Resample to 1-minute OHLC
+    ohlc = df['value'].resample('1min').ohlc().ffill()
     
-    # 2. Calculate indicator - use RSI
     close = ohlc['close'].values
+    high = ohlc['high'].values
+    low = ohlc['low'].values
+    
     rsi = talib.RSI(close, timeperiod=14)
+    ema_fast = talib.EMA(close, timeperiod=12)
+    ema_slow = talib.EMA(close, timeperiod=26)
+    macd, macd_signal, _ = talib.MACD(close, 12, 26, 9)
     
-    # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-    signals[rsi < 40] = 1   # Buy signal
-    signals[rsi > 60] = -1  # Sell signal
     
-    # 4. Calculate performance metrics
-    returns = np.diff(close) / close[:-1]
+    for i in range(26, len(close)):
+        if rsi[i] < 45 and ema_fast[i] > ema_slow[i]:
+            signals[i] = 1
+        elif rsi[i] > 55 and ema_fast[i] < ema_slow[i]:
+            signals[i] = -1
+    
+    price_changes = np.diff(close)
+    returns = price_changes / close[:-1]
     strategy_returns = returns * signals[:-1]
     
-    # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
     
-    # Sharpe ratio (with safety check)
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
     
-    # Max drawdown
-    cumulative = np.cumprod(1 + strategy_returns)
-    running_max = np.maximum.accumulate(cumulative)
-    drawdown = (running_max - cumulative) / running_max
+    cumulative_wealth = np.cumprod(1 + strategy_returns)
+    running_max = np.maximum.accumulate(cumulative_wealth)
+    drawdown = (running_max - cumulative_wealth) / running_max
     max_dd = np.max(drawdown) if len(drawdown) > 0 else 0.0
     
     return {

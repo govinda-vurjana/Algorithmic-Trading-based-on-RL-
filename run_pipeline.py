@@ -6,7 +6,6 @@ import asyncio
 import warnings
 from pathlib import Path
 from typing import Dict, Any, List
-from openai import AsyncOpenAI
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
@@ -26,48 +25,26 @@ from task.grader import grade_submission
 
 class TradingPipeline:
     def __init__(self):
-        # Get API provider from environment
-        self.api_provider = os.getenv('API_PROVIDER', 'openai').lower()
-        
-        # Initialize the appropriate client
-        if self.api_provider == 'anthropic':
-            self.client = AsyncAnthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
-            self.model = 'claude-3-5-sonnet-20241022'
-        else:
-            self.client = AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-            self.model = 'gpt-4o'
-        
+        # Initialize Anthropic client
+        self.client = AsyncAnthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+        self.model = 'claude-sonnet-4-20250514'
         self.results = []
-        print(f"🤖 Using API Provider: {self.api_provider.upper()}")
+        print(f"🤖 Using Anthropic Claude")
         print(f"📦 Model: {self.model}")
         
     async def get_model_response(self, prompt: str) -> str:
         """Get response from the model."""
         try:
-            if self.api_provider == 'anthropic':
-                # Anthropic API call
-                response = await self.client.messages.create(
-                    model=self.model,
-                    max_tokens=2000,
-                    temperature=0.7,
-                    system="You are an AI that generates trading strategies. Only respond with valid Python code.",
-                    messages=[
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                return response.content[0].text
-            else:
-                # OpenAI API call
-                response = await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": "You are an AI that generates trading strategies. Only respond with valid Python code."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=2000
-                )
-                return response.choices[0].message.content
+            response = await self.client.messages.create(
+                model=self.model,
+                max_tokens=2000,
+                temperature=0.7,
+                system="You are an AI that generates trading strategies. Respond ONLY with valid, executable Python code. Do not include markdown code blocks, explanations, or any text outside the Python code. The code must start with 'import' statements and include the complete predict_trade function.",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            return response.content[0].text
         except Exception as e:
             print(f"Error: {str(e)}")
             return ""

@@ -46,10 +46,10 @@ A solution must pass all these requirements:
 2. **Indicator Usage**: Use at least one TA-Lib indicator
 3. **Return Structure**: Return dict with 'signals' and 'metrics' keys
 4. **Metrics Required**:
-   - `cumulative_returns_final`: Total return of the strategy
-   - `sharpe_ratio`: Risk-adjusted return (≥ 1.0 to pass)
-   - `max_drawdown`: Maximum peak-to-trough decline (< 40% to pass)
-5. **Profitability**: Positive cumulative returns
+   - `cumulative_returns_final`: Total return of the strategy (≥ 0.8%)
+   - `sharpe_ratio`: Risk-adjusted return (≥ 2.0 to pass)
+   - `max_drawdown`: Maximum peak-to-trough decline (< 25% to pass)
+5. **Profitability**: Meaningful positive cumulative returns
 
 ## 🚦 How to Run
 
@@ -74,27 +74,20 @@ A solution must pass all these requirements:
    - **macOS**: `brew install ta-lib`
    - **Linux**: `sudo apt-get install python3-ta-lib`
 
-3. Configure API Keys:
+3. Configure API Key:
    
    Create a `.env` file in the project root (or copy from `.env.example`):
    ```bash
    cp .env.example .env
    ```
    
-   Then edit `.env` and add your API keys:
+   Then edit `.env` and add your Anthropic API key:
    ```bash
-   # Choose your API provider: "anthropic" or "openai"
-   API_PROVIDER="openai"
-   
-   # Add the corresponding API key
-   OPENAI_API_KEY="your-openai-api-key-here"
-   # OR
-   ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+   ANTHROPIC_API_KEY="sk-ant-your-anthropic-api-key-here"
    ```
    
-   **Supported Models:**
-   - OpenAI: `gpt-4o`
-   - Anthropic: `claude-3-5-sonnet-20241022`
+   **Model Used:**
+   - Anthropic: `claude-sonnet-4-20250514`
    
    📖 For detailed API setup instructions, see [API_SETUP.md](API_SETUP.md)
 
@@ -152,9 +145,12 @@ This task teaches:
 
 - **Target Success Rate**: 10-40%
 - **Common Failure Modes**:
+  - Sharpe ratio of 0.0 - strategy not generating enough trades
+  - Low Sharpe ratio (< 2.0) - insufficient risk-adjusted returns
+  - High max drawdown (> 25%) - too risky
+  - Low cumulative returns (< 0.8%) - not profitable enough
   - Division by zero in Sharpe ratio calculation
   - Incorrect signal alignment with price data
-  - Edge cases with small datasets
   - Invalid indicator parameters
 
 ## 📚 Resources
@@ -171,5 +167,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - TA-Lib contributors
 - The Quant Finance community
-- OpenAI for the base models
-- **`results/all_runs.json`**: Detailed results for every trial in every run are appended to this single file for a complete chronological record.
+- Anthropic for Claude models
