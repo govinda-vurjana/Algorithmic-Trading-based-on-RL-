@@ -8,36 +8,37 @@ def predict_trade(data_path: str) -> dict:
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
-
-    # 2. Calculate indicator - Example: RSI
+    
+    # 2. Calculate RSI indicator
     close = ohlc['close'].values
     rsi = talib.RSI(close, timeperiod=14)
-
+    
     # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-
-    # Buy signal when RSI crosses above 40, sell when it crosses below 60
-    signals[rsi < 40] = 1
-    signals[rsi > 60] = -1
+    signals[rsi < 30] = 1   # Buy
+    signals[rsi > 70] = -1  # Sell
+    
+    # Ensure signals array matches the length of data
+    signals = np.pad(signals, (14, 0), 'constant', constant_values=(0, 0))
 
     # 4. Calculate performance metrics
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
-
+    
     # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
-
+    
     # Sharpe ratio (with safety check)
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
-
+    
     # Max drawdown
     cumulative = np.cumprod(1 + strategy_returns)
     running_max = np.maximum.accumulate(cumulative)
     drawdown = (running_max - cumulative) / running_max
     max_dd = np.max(drawdown) if len(drawdown) > 0 else 0.0
-
+    
     return {
         'signals': signals,
         'metrics': {

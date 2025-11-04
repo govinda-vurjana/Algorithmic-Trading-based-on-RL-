@@ -3,24 +3,27 @@ import numpy as np
 import talib
 
 def predict_trade(data_path: str) -> dict:
-    # Load and resample data
+    # 1. Load and resample data
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
 
-    # Calculate RSI indicator
+    # 2. Calculate RSI indicator
     close = ohlc['close'].values
     rsi = talib.RSI(close, timeperiod=14)
 
-    # Generate trading signals based on RSI
+    # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-    signals[rsi < 40] = 1   # Buy when RSI is below 40
-    signals[rsi > 60] = -1  # Sell when RSI is above 60
 
-    # Calculate performance metrics
+    # Buy signal when RSI crosses above 40
+    signals[(rsi > 40)] = 1
+    # Sell signal when RSI crosses below 60
+    signals[(rsi < 60)] = -1
+
+    # 4. Calculate performance metrics
     returns = np.diff(close) / close[:-1]
-    strategy_returns = returns * signals[1:]
+    strategy_returns = returns * signals[:-1]
 
     # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1

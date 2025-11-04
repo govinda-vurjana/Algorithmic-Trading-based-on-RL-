@@ -1,23 +1,23 @@
 {
-  "timestamp": "2025-11-04T15:33:19.875953",
+  "timestamp": "2025-11-04T15:58:50.067011",
   "total_trials": 10,
-  "passed": 2,
+  "passed": 4,
   "results": [
     {
       "trial": 0,
       "passed": false,
-      "error": "Sharpe ratio must be positive (got -4.1675). Strategy loses money or has no variance.",
-      "metrics": {
-        "cumulative_returns_final": -0.08907359604117338,
-        "sharpe_ratio": -4.167465140506688,
-        "max_drawdown": 0.08907359604117338
-      }
+      "error": "Empty response from model",
+      "metrics": null
     },
     {
       "trial": 1,
-      "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.07339712885565786,
+        "sharpe_ratio": 4.165940675559909,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 2,
@@ -32,18 +32,18 @@
     {
       "trial": 3,
       "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "metrics": {
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": 0.0,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 4,
-      "passed": true,
-      "error": null,
-      "metrics": {
-        "cumulative_returns_final": 0.07339712885565786,
-        "sharpe_ratio": 4.165940675559909,
-        "max_drawdown": 0.0
-      }
+      "passed": false,
+      "error": "Empty response from model",
+      "metrics": null
     },
     {
       "trial": 5,
@@ -53,21 +53,29 @@
     },
     {
       "trial": 6,
-      "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.07339712885565786,
+        "sharpe_ratio": 4.165940675559909,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 7,
-      "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "passed": true,
+      "error": null,
+      "metrics": {
+        "cumulative_returns_final": 0.07339712885565786,
+        "sharpe_ratio": 4.165940675559909,
+        "max_drawdown": 0.0
+      }
     },
     {
       "trial": 8,
       "passed": false,
-      "error": "Empty response from model",
-      "metrics": null
+      "error": "Error executing predict_trade: operands could not be broadcast together with shapes (31,) (45,) ",
+      "metrics": {}
     },
     {
       "trial": 9,

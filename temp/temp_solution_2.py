@@ -9,19 +9,19 @@ def predict_trade(data_path: str) -> dict:
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
 
-    # 2. Calculate indicator - using RSI
+    # 2. Calculate indicator - RSI
     close = ohlc['close'].values
     rsi = talib.RSI(close, timeperiod=14)
 
     # 3. Generate trading signals based on RSI
     signals = np.zeros(len(close), dtype=int)
-    signals[rsi < 40] = 1    # Buy signal
-    signals[rsi > 60] = -1   # Sell signal
+    signals[rsi > 60] = -1  # Sell
+    signals[rsi < 40] = 1   # Buy
 
     # 4. Calculate performance metrics
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
-
+    
     # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
 

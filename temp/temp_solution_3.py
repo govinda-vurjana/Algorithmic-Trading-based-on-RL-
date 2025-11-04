@@ -9,14 +9,14 @@ def predict_trade(data_path: str) -> dict:
     df.set_index('timestamp', inplace=True)
     ohlc = df['value'].resample('1min').ohlc().ffill()
 
-    # 2. Calculate technical indicator
+    # 2. Calculate indicator - MACD
     close = ohlc['close'].values
-    macd, macdsignal, macdhist = talib.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+    macd, signal, hist = talib.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
 
-    # 3. Generate trading signals
+    # 3. Generate trading signals based on MACD
     signals = np.zeros(len(close), dtype=int)
-    signals[macd > macdsignal] = 1  # Buy signal
-    signals[macd < macdsignal] = -1 # Sell signal
+    signals[(macd > signal) & (np.roll(macd, 1) <= np.roll(signal, 1))] = 1  # Buy signal
+    signals[(macd < signal) & (np.roll(macd, 1) >= np.roll(signal, 1))] = -1  # Sell signal
 
     # 4. Calculate performance metrics
     returns = np.diff(close) / close[:-1]
@@ -25,7 +25,7 @@ def predict_trade(data_path: str) -> dict:
     # Cumulative returns
     cumulative_returns = np.prod(1 + strategy_returns) - 1
 
-    # Sharpe ratio
+    # Sharpe ratio (with safety check)
     mean_ret = np.mean(strategy_returns)
     std_ret = np.std(strategy_returns)
     sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0

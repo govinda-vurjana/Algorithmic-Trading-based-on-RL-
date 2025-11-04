@@ -7,9 +7,9 @@ def predict_trade(data_path: str) -> dict:
     df = pd.read_csv(data_path, names=['day', 'timestamp', 'value'], header=0)
     df['timestamp'] = pd.to_datetime(df['timestamp'])
     df.set_index('timestamp', inplace=True)
-    ohlc = df['value'].resample('1min').ohlc().ffill()
+    ohlc = df['value'].resample('1T').ohlc().ffill()  # Resample to 1-minute OHLC
     
-    # 2. Calculate indicator - RSI
+    # 2. Calculate indicator - use RSI
     close = ohlc['close'].values
     rsi = talib.RSI(close, timeperiod=14)
     

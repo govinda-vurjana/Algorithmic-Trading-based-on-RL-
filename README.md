@@ -71,6 +71,30 @@ A solution must pass all these requirements:
    - **macOS**: `brew install ta-lib`
    - **Linux**: `sudo apt-get install python3-ta-lib`
 
+3. Configure API Keys:
+   
+   Create a `.env` file in the project root (or copy from `.env.example`):
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Then edit `.env` and add your API keys:
+   ```bash
+   # Choose your API provider: "anthropic" or "openai"
+   API_PROVIDER="openai"
+   
+   # Add the corresponding API key
+   OPENAI_API_KEY="your-openai-api-key-here"
+   # OR
+   ANTHROPIC_API_KEY="your-anthropic-api-key-here"
+   ```
+   
+   **Supported Models:**
+   - OpenAI: `gpt-4o`
+   - Anthropic: `claude-3-5-sonnet-20241022`
+   
+   📖 For detailed API setup instructions, see [API_SETUP.md](API_SETUP.md)
+
 ### Running Evaluations
 
 #### Single Run

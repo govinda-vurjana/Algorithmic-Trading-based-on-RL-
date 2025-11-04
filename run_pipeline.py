@@ -7,6 +7,7 @@ import warnings
 from pathlib import Path
 from typing import Dict, Any, List
 from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 
 # Suppress warnings
@@ -25,22 +26,48 @@ from task.grader import grade_submission
 
 class TradingPipeline:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        # Get API provider from environment
+        self.api_provider = os.getenv('API_PROVIDER', 'openai').lower()
+        
+        # Initialize the appropriate client
+        if self.api_provider == 'anthropic':
+            self.client = AsyncAnthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+            self.model = 'claude-3-5-sonnet-20241022'
+        else:
+            self.client = AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            self.model = 'gpt-4o'
+        
         self.results = []
+        print(f"🤖 Using API Provider: {self.api_provider.upper()}")
+        print(f"📦 Model: {self.model}")
         
     async def get_model_response(self, prompt: str) -> str:
         """Get response from the model."""
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an AI that generates trading strategies. Only respond with valid Python code."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=2000
-            )
-            return response.choices[0].message.content
+            if self.api_provider == 'anthropic':
+                # Anthropic API call
+                response = await self.client.messages.create(
+                    model=self.model,
+                    max_tokens=2000,
+                    temperature=0.7,
+                    system="You are an AI that generates trading strategies. Only respond with valid Python code.",
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                return response.content[0].text
+            else:
+                # OpenAI API call
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are an AI that generates trading strategies. Only respond with valid Python code."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000
+                )
+                return response.choices[0].message.content
         except Exception as e:
             print(f"Error: {str(e)}")
             return ""
