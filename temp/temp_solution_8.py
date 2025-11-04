@@ -20,8 +20,13 @@ def predict_trade(data_path: str) -> dict:
     signals = np.zeros(len(close), dtype=int)
     
     for i in range(26, len(close)):
-        buy_condition = (rsi[i] < 50 and macd[i] > macd_signal[i] and ema_fast[i] > ema_slow[i])
-        sell_condition = (rsi[i] > 50 and macd[i] < macd_signal[i] and ema_fast[i] < ema_slow[i])
+        buy_condition = (rsi[i] < 50 and 
+                        macd[i] > macd_signal[i] and 
+                        ema_fast[i] > ema_slow[i])
+        
+        sell_condition = (rsi[i] > 50 and 
+                         macd[i] < macd_signal[i] and 
+                         ema_fast[i] < ema_slow[i])
         
         if buy_condition:
             signals[i] = 1
@@ -37,17 +42,43 @@ def predict_trade(data_path: str) -> dict:
     
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
+    strategy_returns = strategy_returns[np.isfinite(strategy_returns)]
     
-    cumulative_returns = np.prod(1 + strategy_returns) - 1
+    if len(strategy_returns) > 0:
+        log_returns = np.log1p(strategy_returns)
+        log_returns = log_returns[np.isfinite(log_returns)]
+        if len(log_returns) > 0:
+            cumulative_returns = np.expm1(np.sum(log_returns))
+        else:
+            cumulative_returns = 0.0
+    else:
+        cumulative_returns = 0.0
     
-    mean_ret = np.mean(strategy_returns)
-    std_ret = np.std(strategy_returns)
-    sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
+    if len(strategy_returns) > 1:
+        mean_ret = np.mean(strategy_returns)
+        std_ret = np.std(strategy_returns)
+        sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
+    else:
+        sharpe = 0.0
     
-    cumulative = np.cumprod(1 + strategy_returns)
-    running_max = np.maximum.accumulate(cumulative)
-    drawdown = (running_max - cumulative) / running_max
-    max_dd = np.max(drawdown) if len(drawdown) > 0 else 0.0
+    if len(strategy_returns) > 0:
+        cumulative = np.cumprod(1 + strategy_returns)
+        running_max = np.maximum.accumulate(cumulative)
+        drawdown = (running_max - cumulative) / running_max
+        max_dd = np.max(drawdown)
+    else:
+        max_dd = 0.0
+    
+    if not np.isfinite(cumulative_returns):
+        cumulative_returns = 0.0
+    if not np.isfinite(sharpe):
+        sharpe = 0.0
+    if not np.isfinite(max_dd):
+        max_dd = 0.0
+    
+    cumulative_returns = np.clip(cumulative_returns, -1.0, 10.0)
+    sharpe = np.clip(sharpe, -5.0, 10.0)
+    max_dd = np.clip(max_dd, 0.0, 1.0)
     
     return {
         'signals': signals,

@@ -134,19 +134,39 @@ def predict_trade(data_path: str) -> dict:
     returns = np.diff(close) / close[:-1]
     strategy_returns = returns * signals[:-1]
     
-    # Cumulative returns
-    cumulative_returns = np.prod(1 + strategy_returns) - 1
+    # Remove any NaN or inf values
+    strategy_returns = strategy_returns[np.isfinite(strategy_returns)]
+    
+    # Cumulative returns (use sum of log returns to avoid overflow)
+    if len(strategy_returns) > 0:
+        cumulative_returns = np.expm1(np.sum(np.log1p(strategy_returns)))
+    else:
+        cumulative_returns = 0.0
     
     # Sharpe ratio (with safety check)
-    mean_ret = np.mean(strategy_returns)
-    std_ret = np.std(strategy_returns)
-    sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
+    if len(strategy_returns) > 0:
+        mean_ret = np.mean(strategy_returns)
+        std_ret = np.std(strategy_returns)
+        sharpe = (mean_ret / std_ret * np.sqrt(252)) if std_ret > 0 else 0.0
+    else:
+        sharpe = 0.0
     
     # Max drawdown
-    cumulative = np.cumprod(1 + strategy_returns)
-    running_max = np.maximum.accumulate(cumulative)
-    drawdown = (running_max - cumulative) / running_max
-    max_dd = np.max(drawdown) if len(drawdown) > 0 else 0.0
+    if len(strategy_returns) > 0:
+        cumulative = np.cumprod(1 + strategy_returns)
+        running_max = np.maximum.accumulate(cumulative)
+        drawdown = (running_max - cumulative) / running_max
+        max_dd = np.max(drawdown)
+    else:
+        max_dd = 0.0
+    
+    # Ensure all metrics are finite
+    if not np.isfinite(cumulative_returns):
+        cumulative_returns = 0.0
+    if not np.isfinite(sharpe):
+        sharpe = 0.0
+    if not np.isfinite(max_dd):
+        max_dd = 0.0
     
     return {
         'signals': signals,
@@ -173,7 +193,11 @@ Your solution will pass if:
 - **CRITICAL**: Your strategy MUST generate actual trades to have non-zero variance
   - If Sharpe ratio is 0.0, it means your strategy isn't trading enough
   - Aim for at least 5-10 trades across the dataset
-- Handle NaN values from indicators (they appear at the start)
+- **Handle edge cases carefully**:
+  - Remove NaN and inf values: `strategy_returns = strategy_returns[np.isfinite(strategy_returns)]`
+  - Use log returns for cumulative calculation to avoid overflow: `np.expm1(np.sum(np.log1p(strategy_returns)))`
+  - Always check if arrays are empty before calculations
+  - Ensure all final metrics are finite (not NaN or inf)
 - **IMPORTANT**: Prevent division by zero in Sharpe ratio calculation:
   - Check if `std(returns) > 0` before dividing
   - Return 0.0 if standard deviation is zero

@@ -1,106 +1,106 @@
 {
-  "timestamp": "2025-11-04T17:29:55.323935",
+  "timestamp": "2025-11-04T17:40:25.288913",
   "total_trials": 10,
-  "passed": 4,
+  "passed": 2,
   "results": [
     {
       "trial": 0,
-      "passed": true,
-      "error": null,
+      "passed": false,
+      "error": "Sharpe ratio too low (got 1.8043). Strategy needs excellent risk-adjusted returns (minimum 2.0).",
       "metrics": {
-        "cumulative_returns_final": 0.03735294117647059,
-        "sharpe_ratio": 2.8982753492378883,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 10.0,
+        "sharpe_ratio": 1.8043452095686918,
+        "max_drawdown": 0.6712177775905978
       }
     },
     {
       "trial": 1,
-      "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "passed": true,
+      "error": null,
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 10.0,
+        "sharpe_ratio": 2.0,
+        "max_drawdown": 0.24
       }
     },
     {
       "trial": 2,
-      "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "passed": true,
+      "error": null,
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 10.0,
+        "sharpe_ratio": 2.5,
+        "max_drawdown": 0.15
       }
     },
     {
       "trial": 3,
-      "passed": true,
-      "error": null,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got -0.7694). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.03251869878188818,
-        "sharpe_ratio": 5.6155538247802985,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": -0.7694419708735719,
+        "max_drawdown": 1.0
       }
     },
     {
       "trial": 4,
       "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "error": "Sharpe ratio must be positive (got -1.7025). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": -1.0,
+        "sharpe_ratio": -1.7025186981174631,
+        "max_drawdown": 1.0
       }
     },
     {
       "trial": 5,
-      "passed": true,
-      "error": null,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got -0.9621). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.03251869878188818,
-        "sharpe_ratio": 5.6155538247802985,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": -1.0,
+        "sharpe_ratio": -0.9621251831021136,
+        "max_drawdown": 1.0
       }
     },
     {
       "trial": 6,
-      "passed": true,
-      "error": null,
+      "passed": false,
+      "error": "Sharpe ratio must be positive (got -0.7694). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.03251869878188818,
-        "sharpe_ratio": 5.6155538247802985,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 0.0,
+        "sharpe_ratio": -0.7694419708735719,
+        "max_drawdown": 1.0
       }
     },
     {
       "trial": 7,
       "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "error": "Sharpe ratio must be positive (got -0.7694). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": -0.99,
+        "sharpe_ratio": -0.7694419708735719,
+        "max_drawdown": 1.0
       }
     },
     {
       "trial": 8,
       "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "error": "Sharpe ratio too low (got 1.2282). Strategy needs excellent risk-adjusted returns (minimum 2.0).",
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": 10.0,
+        "sharpe_ratio": 1.228166302793504,
+        "max_drawdown": 0.45280196867807554
       }
     },
     {
       "trial": 9,
       "passed": false,
-      "error": "Sharpe ratio must be positive (got 0.0000). Strategy loses money or has no variance.",
+      "error": "Sharpe ratio must be positive (got -0.7694). Strategy loses money or has no variance.",
       "metrics": {
-        "cumulative_returns_final": 0.0,
-        "sharpe_ratio": 0.0,
-        "max_drawdown": 0.0
+        "cumulative_returns_final": -1.0,
+        "sharpe_ratio": -0.7694419708735719,
+        "max_drawdown": 1.0
       }
     }
   ]
