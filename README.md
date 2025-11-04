@@ -1,103 +1,150 @@
-# RL Task for LLM Training
+# Algorithmic Trading Strategy Implementation Task
 
-## Project Overview
+## 🚀 Project Overview
 
-This project provides a framework for creating and evaluating Reinforcement Learning (RL) tasks for Large Language Models (LLMs). The goal is to teach an LLM a practical skill that a Machine Learning Engineer or researcher would use in their daily work.
+This project challenges AI models to implement a trading strategy using technical analysis. The model must process tick-level price data, calculate technical indicators, generate trading signals, and compute performance metrics.
 
-### The Task: Fixing a Data Preprocessing Pipeline
+## 📈 Task Description
 
-The specific task in this repository challenges an AI agent to fix a broken data preprocessing pipeline. The agent is given a prompt explaining the requirements and a set of tools to interact with the environment. The agent's goal is to write a Python function called `preprocess_data` that correctly cleans, transforms, and prepares a dataset for model training, addressing common issues like missing values, categorical data, and data leakage.
+### The Challenge
+Implement a function called `predict_trade` that takes a CSV file path as input and returns a dictionary with trading signals and performance metrics. The function should:
 
-The evaluation is run for 10 trials by default, and the target success rate is between 10% and 40% to ensure the task is neither too easy nor too hard for effective learning.
+1. Load and preprocess tick data
+2. Calculate technical indicators (RSI, MACD, EMA, etc.)
+3. Generate trading signals based on indicator conditions
+4. Calculate performance metrics (Sharpe ratio, max drawdown, cumulative returns)
 
-### How It Works
+### Learning Objectives
+- **Financial time series processing**: Resampling tick data to OHLC bars
+- **Technical analysis**: Using TA-Lib indicators for trading decisions
+- **Performance evaluation**: Calculating risk-adjusted returns
+- **Array manipulation**: Handling edge cases and data alignment
+- **Domain-specific constraints**: Understanding trading logic and risk management
 
-1.  The `run_trials.py` script is executed.
-2.  The script loads the task prompt from `task/prompt.txt` and presents it to the AI agent.
-3.  The agent uses the tools available in `task/tool_api.py` (like `python_expression` and `file_reader`) to understand the problem and develop a solution.
-4.  The agent submits its final code for the `preprocess_data` function using the `submit_answer` tool.
-5.  The `task/grader.py` script executes the submitted function and evaluates it against a list of 9 rigorous requirements.
-6.  The results are saved and appended to log files in the `results/` directory.
+## 🛠️ Project Structure
 
-### File Breakdown
+```
+.
+├── task/
+│   ├── prompt.txt          # Detailed task instructions and requirements
+│   ├── grader.py           # Evaluation logic and success criteria
+│   └── data/
+│       └── tick_data.csv   # Sample tick data for testing
+├── run_pipeline.py         # Main script to run evaluations
+├── auto_pipeline.py        # Automated prompt improvement script
+└── README.md               # This file
+```
 
--   `run_trials.py`: The main entry point for running the evaluation. It handles command-line arguments, orchestrates the trials, and saves the results.
--   `task/prompt.txt`: A text file containing the detailed instructions and requirements for the AI agent.
--   `task/tool_api.py`: Defines the set of Python tools the agent can use to interact with the system, such as executing code or reading files.
--   `task/grader.py`: Contains the core logic for evaluating the agent's submitted code. This is the most critical part of the task's verification.
--   `task/data/sample_dataset.csv`: The default dataset used for the evaluation.
--   `results/`: This directory stores the output logs. `pass_rate.txt` contains a running summary, and `all_runs.json` contains detailed, append-only logs of every trial.
--   `README.md`: This file, providing documentation for the project.
+## 🎯 Success Criteria
 
-### The Grading Process in Detail
+A solution must pass all these requirements:
 
-The grader is designed to be robust and flexible, allowing for multiple correct solution approaches. It evaluates the submitted `preprocess_data` function based on the quality of the output data and the methods used. A submission is considered successful if it passes at least **5 out of the 9** requirements:
+1. **Function Signature**: Implement `predict_trade(data_path: str) -> dict`
+2. **Indicator Usage**: Use at least one TA-Lib indicator
+3. **Return Structure**: Return dict with 'signals' and 'metrics' keys
+4. **Metrics Required**:
+   - `cumulative_returns_final`: Total return of the strategy
+   - `sharpe_ratio`: Risk-adjusted return (≥ 1.0 to pass)
+   - `max_drawdown`: Maximum peak-to-trough decline (< 40% to pass)
+5. **Profitability**: Positive cumulative returns
 
-1.  **No Missing Values**: Checks that the final `X_train` and `X_test` dataframes contain no `NaN` values.
-2.  **No Infinite Values**: Ensures the final dataframes do not contain any infinite values.
-3.  **Correct Train/Test Split**: Verifies that the data was split into the correct proportions (e.g., an 80/20 split).
-4.  **All Features Numeric**: Confirms that all categorical features have been successfully converted to a numeric format (e.g., through one-hot encoding).
-5.  **Feature Normalization**: Checks that the numerical features have been standardized (e.g., using `StandardScaler`), indicated by a mean close to 0 and a standard deviation close to 1.
-6.  **No Data Leakage**: Looks for evidence that preprocessing steps (like scaling) were fitted on the training data *before* being applied to the test data. It checks for the correct usage of `fit_transform` and `transform` or a `Pipeline`.
-7.  **Categorical Variables Handled**: Ensures that categorical variables were not simply dropped, typically by checking if the number of features has increased (due to one-hot encoding).
-8.  **Target Distribution Preserved**: Verifies that stratified sampling was used during the train/test split by checking for the `stratify` keyword and comparing the target distribution between the original and the training sets.
-9.  **Input Validation**: Checks if the code includes basic error handling, such as `try-except` blocks or checks for the existence of the file or target column.
+## 🚦 How to Run
 
----
+### Prerequisites
+- Python 3.8+
+- Required packages: `pandas`, `numpy`, `talib`
 
-## Setup Instructions
-
+### Installation
 1. Clone the repository:
-   ```
-   git clone https://github.com/preferencemodel/hello-py.git
-   ```
-
-2. Navigate to the project directory:
-   ```
-   cd hello-py
-   ```
-
-3. Set up API keys in `.env` file:
-   ```
-   ANTHROPIC_API_KEY=your_anthropic_key_here
-   OPENAI_API_KEY=your_openai_key_here
-   API_PROVIDER=openai
-   ```
-
-4. Run the task evaluation:
-
-   The `run_trials.py` script is the single entrypoint for running evaluations.
-
-   **Default Dataset**
-
-   To run the evaluation with the default local dataset (`task/data/sample_dataset.csv`):
    ```bash
-   uv run run_trials.py
+   git clone https://github.com/govinda-vurjana/Algorithmic-Trading-based-on-RL-.git
+   cd Algorithmic-Trading-based-on-RL-
    ```
 
-   **Custom Dataset**
-
-   You can specify a custom dataset using command-line arguments. The script can be pointed to any local CSV file.
+2. Install dependencies:
    ```bash
-   uv run run_trials.py --dataset-path "path/to/your/data.csv" --target-column "your_target_column_name"
+   pip install -r requirements.txt
    ```
+   
+   Note: For TA-Lib, you might need to install system dependencies first:
+   - **Windows**: Download pre-built binary from [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#ta-lib)
+   - **macOS**: `brew install ta-lib`
+   - **Linux**: `sudo apt-get install python3-ta-lib`
 
-## Execution Modes
+### Running Evaluations
 
-You can control the execution mode with command-line flags:
+#### Single Run
+```bash
+python run_pipeline.py
+```
 
-- **Concurrent (Default)**: Runs trials in parallel for speed.
-  ```bash
-  uv run run_trials.py
-  ```
-- **Sequential**: Runs trials one by one. Useful for debugging.
-  ```bash
-  uv run run_trials.py --no-concurrent
-  ```
+#### Multiple Trials
+```bash
+python run_pipeline.py --trials 10
+```
 
-## Logging
+#### Auto-Improvement Mode
+```bash
+python auto_pipeline.py --auto --attempts 10 --target 0.3
+```
 
-- **`results/pass_rate.txt`**: A summary of each run, including the data source and pass rate, is appended here.
+## 📊 Expected Output
+
+Successful solutions will produce output similar to:
+
+```python
+{
+    'signals': array([0, 1, -1, ...]),  # Trading signals: -1 (sell), 0 (hold), 1 (buy)
+    'metrics': {
+        'cumulative_returns_final': 0.15,  # 15% total return
+        'sharpe_ratio': 1.2,              # Risk-adjusted return
+        'max_drawdown': 0.25               # 25% maximum drawdown
+    }
+}
+```
+
+## 🎓 Learning Outcomes
+
+This task teaches:
+1. **Financial Data Processing**
+   - Handling high-frequency tick data
+   - Resampling to OHLC format
+   - Managing missing values and edge cases
+
+2. **Technical Analysis**
+   - Implementing common indicators (RSI, MACD, EMA)
+   - Signal generation and validation
+   - Risk management techniques
+
+3. **Performance Metrics**
+   - Calculating risk-adjusted returns
+   - Measuring drawdowns
+   - Evaluating strategy performance
+
+## 🤖 Model Performance
+
+- **Target Success Rate**: 10-40%
+- **Common Failure Modes**:
+  - Division by zero in Sharpe ratio calculation
+  - Incorrect signal alignment with price data
+  - Edge cases with small datasets
+  - Invalid indicator parameters
+
+## 📚 Resources
+
+- [TA-Lib Documentation](https://mrjbq7.github.io/ta-lib/)
+- [QuantConnect Tutorials](https://www.quantconnect.com/learn)
+- [Backtrader Documentation](https://www.backtrader.com/docu/)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- TA-Lib contributors
+- The Quant Finance community
+- OpenAI for the base models
 - **`results/all_runs.json`**: Detailed results for every trial in every run are appended to this single file for a complete chronological record.
 
 ## Example Log Output (`results/pass_rate.txt`)
