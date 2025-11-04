@@ -3,6 +3,7 @@
 ## 🚀 Project Overview
 
 This project challenges AI models to implement a trading strategy using technical analysis. The model must process tick-level price data, calculate technical indicators, generate trading signals, and compute performance metrics.
+<img width="1536" height="632" alt="image" src="https://github.com/user-attachments/assets/e0eea607-2482-4c24-93ec-0764e6be70ec" />
 
 ## 📈 Task Description
 
